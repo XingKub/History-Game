@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>เกมประวัติ & Tic Tac Toe</title>
+<style>
+  body { background-color: blanchedalmond ; text-align: center; font-family: Arial, sans-serif; }
+  span1 {color: rgb(142, 142, 142);}
+  span2 {color: darkgreen;}
+  table { border-collapse: collapse; margin: 20px auto; }
+  td { width: 60px; height: 60px; border: 2px solid #000; font-size: 36px; text-align: center; cursor: pointer; }
+  #question, #answerCheck { margin: 10px; font-weight: bold; }
+  .optionBtn { display:block; margin:5px auto; padding:8px 12px; border-radius:8px; cursor:pointer; border:1px solid #444; background:#f2f2f2; }
+  .optionBtn:hover { background:#ddd; }
+</style>
+</head>
+<body>
+
+<h1> <span1> เกม X , O2 </span1> <span2> ประวัติศาสตร์ </span2> </h1>
+
+<h3>ผู้เล่นคนปัจจุบัน: <span id="currentPlayer">X</span></h3>
+
+<!-- ส่วนคำถาม -->
+<div id="quizSection">
+  <h3>สุ่มคำถาม</h3>
+  <button onclick="randomQuestion()">สุ่มคำถาม</button>
+  <div id="question">คำถามจะแสดงตรงนี้</div>
+  <div id="options"></div>
+  <div id="answerCheck"></div>
+</div>
+
+<!-- Tic Tac Toe -->
+<table id="ticTacToe">
+  <tr>
+    <td onclick="makeMove(this,0,0)"></td>
+    <td onclick="makeMove(this,0,1)"></td>
+    <td onclick="makeMove(this,0,2)"></td>
+  </tr>
+  <tr>
+    <td onclick="makeMove(this,1,0)"></td>
+    <td onclick="makeMove(this,1,1)"></td>
+    <td onclick="makeMove(this,1,2)"></td>
+  </tr>
+  <tr>
+    <td onclick="makeMove(this,2,0)"></td>
+    <td onclick="makeMove(this,2,1)"></td>
+    <td onclick="makeMove(this,2,2)"></td>
+  </tr>
+</table>
+
+<div id="tttResult"></div>
+<button onclick="resetTicTacToe()">รีเซ็ตเกม</button>
+
+<script>
+const questions = [
+  {q:"ข้อใดคืออักษรของอียิปต์", a:"อักษรเฮียโรกลิฟิก", choices:["อักษรคูนิฟอร์ม","อักษรเบลล์","อักษรเฮีลโรกลิฟิก","อักษรกีซา"]},
+  {q:"ข้อใดคือสถาปัตยกรรมอียิปต์", a:"พีระมิดเมืองกีซา", choices:["โคลอสเซียม","พีระมิดเมืองกีซา","สวนลอยฟ้าบาบิโลน","วิหารพาร์เทนอน"]},
+  {q:"ข้อใดคือเทพเจ้าของอียิปต์", a:"เทพโอซิริส", choices:["เทพโพไซดอน","เทพซุส","เทพอพอลโล","เทพโอซิริส"]},
+  {q:"นักปรัชญาท่านใดที่สอนให้คนใช้เหตุผลและสติปัญญาในการแสวงหาความจริงเกี่ยวกับชีวิตมนุษย์", a:"โสคราตีส", choices:["โสคราตีส","อริสโตเติล","มุโสลินี","เพลโต"]},
+  {q:"ผู้ใดได้รับฉายาว่าเป็นบิดาแห่งประวัติศาสตร์โลกตะวันตก", a:"เฮโรโดตัส", choices:["ทูซิดิดีส","เฮโรโดตัส","มุโสลินี","ไพธาโกรัส"]},
+  {q:"สินค้าที่ส่งออกสำคัญของอียิปต์คือ", a:"ทองคำ", choices:["ทองคำ","เหล็ก","เครื่องปั้นดินเผา","ข้าวโพด"]},
+  {q:"หัวหน้าเทพทั้งปวงของอียิปต์คือ", a:"เทพราหรือเร", choices:["เทพโพไซดอน","เทพซุส","เทพราหรือเร","เทพโอซิริส"]},
+  {q:"ผู้ปกครองที่มีอำนาจสูงสุดในการปกครองอียิปต์", a:"ฟาโรห์", choices:["สุลต่าน","ฟาโรห์","มัมมี่","นักบวช"]},
+  {q:"นครรัฐสปาร์ตาเป็นต้นกำเนิดการปกครองแบบใด", a:"เผด็จการเบ็ดเสร็จ", choices:["ประชาธิปไตย","กึ่งประชาธิปไตย","เผด็จการเบ็ดเสร็จ","กึ่งเผด็จการ"]},
+  {q:"รูปปั้นของกรีกเน้นเรื่องอะไร", a:"ดูเป็นธรรมชาติ", choices:["สีสันสวยงาม","ดูเป็นธรรมชาติ","ความโค้งงอ","มิติหลากหลาย"]},
+  {q:"สถาปัตยกรรมกรีกที่มีเสาเรียบไม่มีลวดลายที่หัวเสา", a:"ดอริก" , choices:["โครินเธียน","ดอริก","ไอโอนิก","โรมัน"]},
+  {q:"ปัจจัยทางภูมิศาสตร์ที่มีผลต่อการเกิดนครรัฐกรีกคืออะไร", a:"ภูมิประเทศเป็นภูเขาสูงและชายฝั่งเว้าแหว่งทำให้เกิดนครรัฐ" , choices:["ที่ราบกว้างใหญ่เหมาะแก่การเกษตร","ภูมิประเทศเป็นภูเขาสูงและมีชายฝั่งเว้าแหว่ง","มีแม่น้ำสายใหญ่ไหลผ่าน","พื้นที่แห้งแล้งไม่เหมาะต่อการตั้งถิ่นฐาน"]},
+  {q:"ชาวกรีกโบราณเรียกตัวเองว่าอะไร", a:"เฮลเลน" , choices:["เฮลเลน","โรมัน","ฟีนีเชียน","อียิปต์"]},
+  {q:"นครรัฐกรีกมีลักษณะการปกครองอย่างไร", a:"ประชาธิปไตยมีสภาเลือกตั้ง" , choices:["มีจักรพรรดิรวมศูนย์อำนาจ","ปกครองโดยสภาขุนนาง","ประชาธิปไตยมีสภาเลือกตั้ง","ปกครองโดยกษัตริย์สืบทอดราชวงศ์"]},
+  {q:"ฮิปโปเครตีสมีชื่อเสียงด้านใด", a:"การแพทย์" , choices:["ปรัชญา","ประวัติศาสตร์","การแพทย์","คณิตศาสตร์"]},
+  {q:"นักปรัชญากรีกคนใดเน้นการตั้งคำถามและการโต้ตอบเรียกว่า", a:"โสคราตีส" , choices:["เพลโต","อริสโตเติล","โสคราตีส","ไพทาโกรัส"]},
+  {q:"กฎหมายสำคัญที่ถือเป็นรากฐานของกฎหมายตะวันตกในอารยธรรมโรมัน", a:"กฎหมายสิบสองโต๊ะ" , choices:["Magna Carta","กฎหมายสิบสองโต๊ะ","กฎหมายฮัมมูราบี","กฎหมายแพ่งฝรั่งเศส"]},
+  {q:"โรมันมีความก้าวหน้าด้านเศรษฐกิจเพราะเหตุใด", a:"มีตลาดใหญ่ระบบคมนาคมสะดวก" , choices:["มีการพัฒนาการเกษตรเพียงอย่างเดียว","พื้นที่การค้าแคบ","มีตลาดใหญ่ระบบคมนาคมสะดวก","ใช้ระบบแลกเปลี่ยนสินค้าแทนใช้เงิน"]},
+  {q:"ภาษาใดที่เป็นมรดกทางสังคมสำคัญของโรมันและกลายเป็นรากฐานของภาษายุโรปหลายภาษา", a:"ลาติน" , choices:["กรีก","ลาติน","อียิปต์","สันสกฤต"]},
+  {q:"การศึกษาของโรมันในระดับประถมมีลักษณะสำคัญอย่างไร", a:"เข้าเรียนอายุ 7 ปีและไม่เสียค่าเล่าเรียน" , choices:["ต้องเสียค่าเล่าเรียนสูง","เรียนภาษากรีกเป็นหลัก","เข้าเรียนอายุ 7 ปีและไม่เสียค่าเล่าเรียน","เน้นการเรียนวิศวกรรมศาสตร์ตั้งแต่เล็ก"]},
+  {q:"สถาปัตยกรรมใดต่อไปนี้เป็นผลงานเด่นของอารยธรรมโรมัน", a:"โคลอสเซียม" , choices:["พีระมิดกีซา","โคลอสเซียม","วิหารพาร์เทนอน","หอคอยบาเบล"]},
+  {q:"โรมันมีความก้าวหน้าด้านวิทยาการและเทคโนโลยีในข้อใด", a:"การสร้างระบบประปาถนนและสะพาน" , choices:["การสร้างพีระมิดและระบบเขียนอักษรภาพ","การสร้างระบบประปาถนนและสะพาน","การค้นพบดินปืนและเข็มทิศ","การคิดค้นวิชาปรัชญาและคณิตศาสตร์"]}
+];
+
+let currentQuestion = null;
+let canClick = false; 
+let board = [["","",""],["","",""],["","",""]];
+let currentPlayer = "X";
+
+function updatePlayerDisplay() {
+  document.getElementById("currentPlayer").innerText = currentPlayer;
+}
+
+function randomQuestion() {
+  const index = Math.floor(Math.random() * questions.length);
+  currentQuestion = questions[index];
+  document.getElementById("question").innerText = currentQuestion.q;
+  document.getElementById("answerCheck").innerText = "";
+  document.getElementById("options").innerHTML = "";
+
+  // สุ่มลำดับตัวเลือก
+  let options = [...currentQuestion.choices];
+  options.sort(()=>Math.random()-0.5);
+
+  options.forEach(opt=>{
+    let btn = document.createElement("button");
+    btn.className = "optionBtn";
+    btn.innerText = opt;
+    btn.onclick = ()=>checkAnswer(opt);
+    document.getElementById("options").appendChild(btn);
+  });
+
+  canClick = false;
+}
+
+function checkAnswer(choice) {
+  if(!currentQuestion) return;
+  if(choice === currentQuestion.a) {
+    document.getElementById("answerCheck").innerText = "ถูกต้อง! คุณสามารถคลิกตารางได้ 1 ครั้ง";
+    canClick = true;
+  } else {
+    document.getElementById("answerCheck").innerText = "ผิด! สิทธิ์ไปผู้เล่นอีกฝ่าย";
+    canClick = false;
+    switchPlayer();
+  }
+}
+
+function makeMove(cell,row,col) {
+  if(!canClick) return; 
+  if(board[row][col]==="") {
+    board[row][col] = currentPlayer;
+    cell.innerText = currentPlayer;
+    canClick = false; 
+    if(checkWin(currentPlayer)) {
+      document.getElementById("tttResult").innerText = currentPlayer + " ชนะ!";
+    } else if(isDraw()) {
+      document.getElementById("tttResult").innerText = "เสมอ!";
+    } else {
+      switchPlayer();
+    }
+  }
+}
+
+function switchPlayer() {
+  currentPlayer = currentPlayer==="X"?"O":"Xs";
+  updatePlayerDisplay();
+}
+
+function checkWin(player) {
+  for(let i=0;i<3;i++) {
+    if(board[i][0]===player && board[i][1]===player && board[i][2]===player) return true;
+    if(board[0][i]===player && board[1][i]===player && board[2][i]===player) return true;
+  }
+  if(board[0][0]===player && board[1][1]===player && board[2][2]===player) return true;
+  if(board[0][2]===player && board[1][1]===player && board[2][0]===player) return true;
+  return false;
+}
+
+function isDraw() {
+  return board.flat().every(cell=>cell!=="");
+}
+
+function resetTicTacToe() {
+  board=[["","",""],["","",""],["","",""]];
+  currentPlayer="X";
+  canClick=false;
+  updatePlayerDisplay();
+  document.getElementById("tttResult").innerText="";
+  document.getElementById("options").innerHTML="";
+  document.getElementById("question").innerText="คำถามจะแสดงตรงนี้";
+  document.getElementById("answerCheck").innerText="";
+  const cells = document.querySelectorAll("#ticTacToe td");
+  cells.forEach(c => c.innerText="");
+}
+</script>
+</body>
+</html>
